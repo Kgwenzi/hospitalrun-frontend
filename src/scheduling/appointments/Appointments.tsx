@@ -1,12 +1,48 @@
 import React from 'react'
-import { Calendar } from '@hospitalrun/components'
-import useTitle from 'page-header/useTitle'
-import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
+import { Switch } from 'react-router-dom'
+
+import PrivateRoute from '../../shared/components/PrivateRoute'
+import Permissions from '../../shared/model/Permissions'
+import { RootState } from '../../shared/store'
+import EditAppointment from './edit/EditAppointment'
+import NewAppointment from './new/NewAppointment'
+import ViewAppointment from './view/ViewAppointment'
+import ViewAppointments from './ViewAppointments'
 
 const Appointments = () => {
-  const { t } = useTranslation()
-  useTitle(t('scheduling.appointments.label'))
-  return <Calendar />
+  const permissions = useSelector((state: RootState) => state.user.permissions)
+  return (
+    <Switch>
+      <PrivateRoute
+        isAuthenticated={permissions.includes(Permissions.ReadAppointments)}
+        exact
+        path="/appointments"
+        component={ViewAppointments}
+      />
+      <PrivateRoute
+        isAuthenticated={permissions.includes(Permissions.WriteAppointments)}
+        exact
+        path="/appointments/new"
+        component={NewAppointment}
+      />
+      <PrivateRoute
+        isAuthenticated={
+          permissions.includes(Permissions.WriteAppointments) &&
+          permissions.includes(Permissions.ReadAppointments)
+        }
+        exact
+        path="/appointments/edit/:id"
+        component={EditAppointment}
+      />
+      <PrivateRoute
+        isAuthenticated={permissions.includes(Permissions.ReadAppointments)}
+        exact
+        path="/appointments/:id"
+        component={ViewAppointment}
+      />
+    </Switch>
+  )
 }
 
 export default Appointments
